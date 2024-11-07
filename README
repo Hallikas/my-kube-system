@@ -1,0 +1,10 @@
+THIS IS TODO PROJECT
+
+You should have:
+1) Three (ubuntu 22.04) systems, root should be able to login with SSH Keys
+2) Servers MUST have at least 2vCPU and 4GB of RAM
+3) SSH id files should be on first server, first server will launch SSH copy and execute on other nodes
+4) First node is non-scheduled by default
+5) DNS should have one name as 'A' record for all three servers
+
+Edit 01-install.sh before running it.

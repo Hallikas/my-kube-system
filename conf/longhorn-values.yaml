@@ -1,0 +1,26 @@
+defaultSettings:
+  allowCollectingLonghornUsageMetrics: false
+  disableSchedulingOnCordonedNode: false
+  nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+  snapshotMaxCount: 5
+  defaultDataPath: /data2/longhorn
+  createDefaultDiskLabeledNodes: true
+  storageMinimalAvailablePercentage: 2
+  storageOverProvisioningPercentage: 200
+  storageReservedPercentageForDefaultDisk: 2
+  taintToleration: CriticalAddonsOnly:NoSchedule
+global:
+  tolerations:
+    - effect: NoSchedule
+      key: CriticalAddonsOnly
+      operator: Exists
+longhornManager:
+  tolerations:
+    - effect: NoSchedule
+      key: CriticalAddonsOnly
+      operator: Exists
+#metrics:
+#  enabled: true
+# MicroK8s only
+#csi:
+#  kubeletRootDir: /var/snap/microk8s/common/var/lib/kubelet

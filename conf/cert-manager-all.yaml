@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Secret
+  type: Opaque
+  metadata:
+    name: api-cloudflare-dns
+    namespace: cert-manager
+  data:
+    api-token: W1NFQ1JFVCAtIFVTRSBZT1VSIE9XTl0=
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: cert-manager.io/v1
+  kind: ClusterIssuer
+  metadata:
+    generation: 1
+    name: letsencrypt
+  spec:
+    acme:
+      email: "[YOUR_EMAIL]"
+      preferredChain: ""
+      privateKeySecretRef:
+        name: letsencrypt-key
+      server: https://acme-v02.api.letsencrypt.org/directory
+      solvers:
+      - http01:
+          ingress:
+            class: public
+- apiVersion: cert-manager.io/v1
+  kind: ClusterIssuer
+  metadata:
+    generation: 1
+    name: dns
+  spec:
+    acme:
+      email: "[YOUR_EMAIL]"
+      preferredChain: ""
+      privateKeySecretRef:
+        name: letsencrypt-key
+      server: https://acme-v02.api.letsencrypt.org/directory
+      solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              key: api-token
+              name: api-cloudflare-dns
+---
