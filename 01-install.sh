@@ -30,7 +30,7 @@ for NODE in ${NODES};do
 	ssh -p ${SSHPORT} root@${NODE}.${DOMAIN} "id"
 done
 
-echo "Ready to continue";read
+#echo "Ready to continue";read
 
 mkdir -p conf
 
@@ -99,6 +99,10 @@ tls-san:
  - ${SYSTEMURL}
 resolv-conf: /etc/resolv-ipv4.conf
 service-node-port-range: 0-65535
+disable:
+  - rke2-snapshot-controller
+  - rke2-snapshot-controller-crd
+  - rke2-snapshot-validation-webhook
 EOF
 
 cat <<'EOF' >> .nodesh.tmp
@@ -106,7 +110,7 @@ curl -sfL https://get.rke2.io | sh -
 systemctl enable rke2-server.service
 systemctl start rke2-server.service
 
-echo 'PATH=/var/lib/rancher/rke2/bin/:${PATH}' >> .profile
+echo 'PATH=/var/lib/rancher/rke2/bin/:${PATH}' >> ~/.profile
 
 cp /etc/rancher/rke2/rke2.yaml /root/.kube/config
 EOF
@@ -121,6 +125,7 @@ cat <<'EOF' >> .nodesh.tmp
 if [ ! -e /.swap.tmp ]; then
 dd if=/dev/zero bs=1024 count=$[1024*1024*2] of=/.swap.tmp
 echo "/.swap.tmp swap swap defaults 0 0" >> /etc/fstab
+chmod 600 /.swap.tmp
 mkswap /.swap.tmp
 fi
 swapon -a
@@ -265,7 +270,6 @@ helm upgrade --install=true rancher rancher-${REPO}/rancher \
 	--set replicas=1 \
 	--set hostname=${SYSTEMURL} \
 	--set tls=external \
-	--disable=rke2-snapshot-controller,rke2-snapshot-controller-crd,rke2-snapshot-validation-webhook \
 	--set ingress.extraAnnotations.'cert-manager\.io/cluster-issuer'=letsencrypt
 
 # Wait until ready
