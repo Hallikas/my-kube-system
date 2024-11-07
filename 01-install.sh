@@ -3,9 +3,10 @@
 DOMAIN=gamehost.fi
 SYSTEMURL=test.${DOMAIN}
 ENGINE=rke2
+# microk8s engine support not yet configured
 #ENGINE=microk8s
 
-# Add list of your 3 master nodes here, including current one
+# Add list of your 3 master nodes here, including current one, update grep line also!
 grep -q testkube2 /etc/hosts || cat <<EOF >> /etc/hosts
 37.27.207.147 testkube1 testkube1.${DOMAIN}
 37.27.194.169 testkube2 testkube2.${DOMAIN}
@@ -14,6 +15,7 @@ EOF
 
 SSHPORT="22"
 TOKEN=$(openssl rand -hex 48)
+NODES=$(grep "gamehost.fi$" /etc/hosts|cut -d' ' -f2)
 
 ###### PRE CHECK
 # Do we have SSH key?
@@ -23,7 +25,7 @@ until [ -e ~/.ssh/id_rsa ]; do
 	sleep 10
 done
 
-for NODE in testkube1 testkube2 testkube3;do
+for NODE in ${NODES};do
 	[ "${NODE}" = "$(hostname -s)" ] && continue
 	ssh -p ${SSHPORT} root@${NODE}.${DOMAIN} "id"
 done
@@ -124,7 +126,7 @@ fi
 swapon -a
 EOF
 
-for NODE in testkube1 testkube2 testkube3;do
+for NODE in ${NODES};do
 	if [ "${NODE}" = "$(hostname -s)" ]; then
 		mkdir -p /etc/rancher/rke2/
 
@@ -262,8 +264,9 @@ helm upgrade --install=true rancher rancher-${REPO}/rancher \
 	--namespace cattle-system \
 	--set replicas=1 \
 	--set hostname=${SYSTEMURL} \
-	--set tls=external
-#	--set ingress.extraAnnotations.'cert-manager\.io/cluster-issuer'=letsencrypt
+	--set tls=external \
+	--disable=rke2-snapshot-controller,rke2-snapshot-controller-crd,rke2-snapshot-validation-webhook \
+	--set ingress.extraAnnotations.'cert-manager\.io/cluster-issuer'=letsencrypt
 
 # Wait until ready
 until kubectl get secret --namespace cattle-system bootstrap-secret 2> /dev/null;do sleep 4;done
